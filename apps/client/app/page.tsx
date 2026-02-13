@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -43,15 +44,18 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-8">
-          <button
-            className="px-8 py-4 rounded-lg bg-[#00f0ff] text-black font-bold text-lg hover:bg-cyan-300 hover:shadow-glow-primary transition-all uppercase tracking-wide"
-            onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/login`}
+          <Link
+            href="/signup"
+            className="px-8 py-4 rounded-lg bg-[#00f0ff] text-black font-bold text-lg hover:bg-cyan-300 hover:shadow-glow-primary transition-all uppercase tracking-wide flex items-center justify-center"
           >
             Sign Up Now
-          </button>
-          <button className="px-8 py-4 rounded-lg glass-panel text-white font-bold text-lg border border-white/10 hover:bg-white/5 transition-all uppercase tracking-wide hover:border-primary/50">
+          </Link>
+          <Link
+            href="/login"
+            className="px-8 py-4 rounded-lg glass-panel text-white font-bold text-lg border border-white/10 hover:bg-white/5 transition-all uppercase tracking-wide hover:border-primary/50 flex items-center justify-center"
+          >
             Sign In
-          </button>
+          </Link>
         </div>
 
       </main>
