@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
     const router = useRouter();
-    const [formData, setFormData] = useState({ email: "", password: "" });
+    const [formData, setFormData] = useState({ email: "", password: "", name: "" });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -26,7 +26,7 @@ export default function SignupPage() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.message || "Registration failed");
+                throw new Error(data.error?.message || data.message || "Registration failed");
             }
 
             // Success
@@ -56,8 +56,21 @@ export default function SignupPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
+                        <label className="block text-sm font-mono text-gray-400 mb-1">FULL NAME</label>
+                        <input
+                            id="signup-name"
+                            type="text"
+                            required
+                            className="w-full bg-black/50 border border-white/10 rounded p-3 text-white focus:outline-none focus:border-primary transition-colors"
+                            placeholder="John Doe"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
+                    </div>
+                    <div>
                         <label className="block text-sm font-mono text-gray-400 mb-1">EMAIL</label>
                         <input
+                            id="signup-email"
                             type="email"
                             required
                             className="w-full bg-black/50 border border-white/10 rounded p-3 text-white focus:outline-none focus:border-primary transition-colors"
@@ -69,6 +82,7 @@ export default function SignupPage() {
                     <div>
                         <label className="block text-sm font-mono text-gray-400 mb-1">PASSWORD</label>
                         <input
+                            id="signup-password"
                             type="password"
                             required
                             className="w-full bg-black/50 border border-white/10 rounded p-3 text-white focus:outline-none focus:border-primary transition-colors"
@@ -76,9 +90,13 @@ export default function SignupPage() {
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         />
+                        <p className="text-xs text-gray-600 mt-1 font-mono">
+                            Min 8 chars • Uppercase • Lowercase • Number • Special char
+                        </p>
                     </div>
 
                     <button
+                        id="signup-submit"
                         type="submit"
                         disabled={loading}
                         className="w-full py-3 rounded-lg bg-primary text-black font-bold hover:bg-cyan-300 transition-all uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"

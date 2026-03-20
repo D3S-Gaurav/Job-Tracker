@@ -10,28 +10,125 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  jobs      Job[]
-}
-
-model Job {
-  id          String   @id @default(uuid())
-  title       String
-  company     String
-  status      String   @default("APPLIED")
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+// ─── ENUMS ──────────────────────────────────────────────────────────────────
 
 enum Role {
   USER
   ADMIN
+  MANAGER
+}
+
+enum JobStatus {
+  SAVED
+  APPLIED
+  PHONE_SCREEN
+  INTERVIEW
+  TECHNICAL
+  OFFER
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  GHOSTED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
+  REMOTE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ─── MODELS ─────────────────────────────────────────────────────────────────
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  name            String?
+  password        String
+  role            Role     @default(USER)
+  encryptedRole   String?  @map("encrypted_role")  // AES-256-GCM encrypted role for verification
+  isActive        Boolean  @default(true) @map("is_active")
+  lastLoginAt     DateTime? @map("last_login_at")
+  failedLoginAttempts Int  @default(0) @map("failed_login_attempts")
+  lockedUntil     DateTime? @map("locked_until")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  jobs            Job[]
+  refreshTokens   RefreshToken[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+model Job {
+  id              String    @id @default(uuid())
+  title           String
+  company         String
+  description     String?
+  location        String?
+  salary          String?
+  url             String?
+  notes           String?
+  status          JobStatus @default(APPLIED)
+  jobType         JobType   @default(FULL_TIME) @map("job_type")
+  priority        Priority  @default(MEDIUM)
+  appliedDate     DateTime? @map("applied_date")
+  interviewDate   DateTime? @map("interview_date")
+  offerDeadline   DateTime? @map("offer_deadline")
+  contactName     String?   @map("contact_name")
+  contactEmail    String?   @map("contact_email")
+  userId          String    @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status])
+  @@index([userId, status])
+  @@map("jobs")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime @map("expires_at")
+  isRevoked   Boolean  @default(false) @map("is_revoked")
+  userAgent   String?  @map("user_agent")
+  ipAddress   String?  @map("ip_address")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
+  entity      String   // USER, JOB, TOKEN, etc.
+  entityId    String?  @map("entity_id")
+  userId      String?  @map("user_id")
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  metadata    Json?    // Additional context
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
